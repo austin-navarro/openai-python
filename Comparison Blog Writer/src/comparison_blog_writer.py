@@ -3,11 +3,10 @@ import json
 import csv
 import random
 import logging
-import time
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, List, Tuple, Optional, Any
 import math
 
 # Try to import the OpenAI client
@@ -256,30 +255,39 @@ class ComparisonBlogWriter:
         Returns:
             The formatted prompt string
         """
-        prompt = f"""
+        # Create the basic prompt content
+        prompt = """
 You are an expert crypto content creator specializing in educational comparison blog posts.
 
-Task: Create a comprehensive comparison blog post between {term_a} and {term_b}.
+Task: Create a detailed comparison blog post between {term_a} and {term_b}.
 
 Audience: Crypto enthusiasts and investors seeking in-depth, technical comparisons.
 
-Goals:
-- Be informative, detailed, and objective in your comparison
-- Follow strict SEO best practices for crypto comparison content
-- Structure the content to match the required JSON output format exactly
-- Use properly formatted markdown for all text content
-- Ensure the content is between 1,300-1,500 words total
+Output Style:
+- Objective and educational
+- Get creative with the introduction paragraph and dont be generic
+- Follows SEO best practices
+- Uses markdown formatting for headings and clear readability
+- Structured exactly to the JSON format provided below
+- Total content should be roughly 1,300–1,500 words
+- Don't be generic with the conclusion paragraphs either    
 
-Your blog post must follow this exact structure:
+Content Length Guidelines:
+| Section         | # of Paragraphs    | Sentences per Paragraph |
+|-----------------|--------------------|-----------------------|
+| Introduction    | 1                  | 5-7                   |
+| Background      | 4-5                | 4-6                   |
+| Key Differences | 5 items            | -                     |
+| - feature_title | -                  | -                     |
+| - a_description | 1 paragraph        | 4-5                   |
+| - b_description | 1 paragraph        | 4-5                   |
+| Comparison Table| 5-6 features       | Short bullet-style    |
+| Ideal For       | 2 lines            | 1-2                   |
+| Conclusion      | 2                  | 4-6                   |
 
-1. A clear, SEO-friendly title comparing {term_a} and {term_b}
-2. 2-3 introduction paragraphs explaining the comparison purpose
-3. Background section with a heading and content for both assets
-4. 5 key differences between {term_a} and {term_b}, each with a feature title, description for {term_a}, and description for {term_b}
-5. A comparison table with at least 5 features
-6. A conclusion section with 3 summary paragraphs
+JSON Schema Format:
+Return the blog as a JSON object in this exact format:
 
-The schema MUST match this exact format:
 {{
   "title": "string",
   "slug": "string",
@@ -290,27 +298,30 @@ The schema MUST match this exact format:
     "role": "Crypto Connoisseur"
   }},
   "media": {{
-    "term_a": "{term_a.lower()}-comparison-blog",
-    "term_b": "{term_b.lower()}-comparison-blog"
+    "term_a": "{term_a_lower}-comparison-blog",
+    "term_b": "{term_b_lower}-comparison-blog"
   }},
   "introduction_paragraphs": [
-    {{ "text": "paragraph text" }},
-    {{ "text": "paragraph text" }}
+    {{ "text": "A detailed single paragraph introducing the comparison between {term_a} and {term_b}, covering the main points that will be discussed in the blog." }}
   ],
   "jump_link_text": "Jump to {term_a} vs {term_b} Comparison",
   "background": {{
     "heading": "Understanding {term_a} and {term_b}",
-    "content": "Detailed background information on both cryptocurrencies..."
+    "paragraphs": [
+      {{ "text": "Paragraph about {term_a} and {term_b}, containing 4-6 sentences." }},
+      {{ "text": "Paragraph about {term_a} and {term_b}, containing 4-6 sentences." }},
+      {{ "text": "Paragraph about {term_a} and {term_b}, containing 4-6 sentences." }},
+      {{ "text": "Paragraph about {term_a} and {term_b}, containing 4-6 sentences." }}
+    ]
   }},
   "key_differences": {{
     "heading": "Key Differences Between {term_a} and {term_b}",
     "items": [
       {{
         "feature_title": "string",
-        "a_description": "description for {term_a}",
-        "b_description": "description for {term_b}"
-      }},
-      // Include 5 key differences total
+        "a_description": "One paragraph of 4–5 sentences describing {term_a}'s take on this feature.",
+        "b_description": "One paragraph of 4–5 sentences describing {term_b}'s take on this feature."
+      }}
     ]
   }},
   "comparison_table": {{
@@ -318,22 +329,20 @@ The schema MUST match this exact format:
     "features": [
       {{
         "label": "Feature Name",
-        "a_value": "Value for {term_a}",
-        "b_value": "Value for {term_b}"
-      }},
-      // Include at least 5 features
+        "a_value": "Short value or stat for {term_a}",
+        "b_value": "Short value or stat for {term_b}"
+      }}
     ],
     "ideal_for": {{
-      "a": "Who {term_a} is best for",
-      "b": "Who {term_b} is best for"
+      "a": "1–2 sentences describing who {term_a} is ideal for.",
+      "b": "1–2 sentences describing who {term_b} is ideal for."
     }}
   }},
   "conclusion": {{
     "heading": "Conclusion: {term_a} vs {term_b}",
     "summary_paragraphs": [
-      {{ "text": "paragraph text" }},
-      {{ "text": "paragraph text" }},
-      {{ "text": "paragraph text" }}
+      {{ "text": "First concluding paragraph summarizing the key differences between {term_a} and {term_b}." }},
+      {{ "text": "Second concluding paragraph offering final thoughts and recommendations based on user needs." }}
     ]
   }}
 }}
@@ -342,7 +351,16 @@ Use the following research to inform your comparison:
 
 {research_context}
 """
-        return prompt
+        # Format the prompt with the terms
+        formatted_prompt = prompt.format(
+            term_a=term_a,
+            term_b=term_b,
+            term_a_lower=term_a.lower(),
+            term_b_lower=term_b.lower(),
+            research_context=research_context
+        )
+        
+        return formatted_prompt
     
     def generate_blog_post(self, term_a: str, term_b: str, research_context: str) -> Dict[str, Any]:
         """
@@ -361,23 +379,289 @@ Use the following research to inform your comparison:
         try:
             logger.info(f"Calling OpenAI API to generate blog post for {term_a} vs {term_b}")
             
-            response = self.client.chat.completions.create(
+            # Build the API call with plain dictionaries to avoid any serialization issues
+            response = self.client.responses.create(
                 model="gpt-4o-mini-2024-07-18",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": prompt
+                input=prompt,
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "comparison_blog_generator",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string",
+                                    "description": "The title of the comparison blog."
+                                },
+                                "slug": {
+                                    "type": "string",
+                                    "description": "The unique identifier for the blog post."
+                                },
+                                "published_date": {
+                                    "type": "string",
+                                    "description": "The date and time when the blog was published in ISO 8601 format."
+                                },
+                                "read_time": {
+                                    "type": "string",
+                                    "description": "Estimated time required to read the blog."
+                                },
+                                "author": {
+                                    "type": "object",
+                                    "description": "Information about the author of the blog.",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "The name of the author."
+                                        },
+                                        "role": {
+                                            "type": "string",
+                                            "description": "The role of the author in relation to the blog topic."
+                                        }
+                                    },
+                                    "required": [
+                                        "name",
+                                        "role"
+                                    ],
+                                    "additionalProperties": False
+                                },
+                                "media": {
+                                    "type": "object",
+                                    "description": "Media information related to the blog post.",
+                                    "properties": {
+                                        "term_a": {
+                                            "type": "string",
+                                            "description": f"Media term for {term_a}."
+                                        },
+                                        "term_b": {
+                                            "type": "string",
+                                            "description": f"Media term for {term_b}."
+                                        }
+                                    },
+                                    "required": [
+                                        "term_a",
+                                        "term_b"
+                                    ],
+                                    "additionalProperties": False
+                                },
+                                "introduction_paragraphs": {
+                                    "type": "array",
+                                    "description": "A collection of paragraphs introducing the topic.",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "text": {
+                                                "type": "string",
+                                                "description": "Text of the introduction paragraph."
+                                            }
+                                        },
+                                        "required": [
+                                            "text"
+                                        ],
+                                        "additionalProperties": False
+                                    }
+                                },
+                                "jump_link_text": {
+                                    "type": "string",
+                                    "description": "Text for the jump link navigating to the comparison section."
+                                },
+                                "background": {
+                                    "type": "object",
+                                    "description": "Background information about the terms being compared.",
+                                    "properties": {
+                                        "heading": {
+                                            "type": "string",
+                                            "description": "Heading for the background section."
+                                        },
+                                        "paragraphs": {
+                                            "type": "array",
+                                            "description": "Background paragraphs explaining both terms.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "text": {
+                                                        "type": "string",
+                                                        "description": "Text of the background paragraph."
+                                                    }
+                                                },
+                                                "required": [
+                                                    "text"
+                                                ],
+                                                "additionalProperties": False
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "heading",
+                                        "paragraphs"
+                                    ],
+                                    "additionalProperties": False
+                                },
+                                "key_differences": {
+                                    "type": "object",
+                                    "description": "Details on key differences between the two terms.",
+                                    "properties": {
+                                        "heading": {
+                                            "type": "string",
+                                            "description": "Heading for the key differences section."
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "description": "List of key differences.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "feature_title": {
+                                                        "type": "string",
+                                                        "description": "Title of the feature being compared."
+                                                    },
+                                                    "a_description": {
+                                                        "type": "string",
+                                                        "description": f"{term_a}'s description of the feature."
+                                                    },
+                                                    "b_description": {
+                                                        "type": "string",
+                                                        "description": f"{term_b}'s description of the feature."
+                                                    }
+                                                },
+                                                "required": [
+                                                    "feature_title",
+                                                    "a_description",
+                                                    "b_description"
+                                                ],
+                                                "additionalProperties": False
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "heading",
+                                        "items"
+                                    ],
+                                    "additionalProperties": False
+                                },
+                                "comparison_table": {
+                                    "type": "object",
+                                    "description": "Comparison table information.",
+                                    "properties": {
+                                        "heading": {
+                                            "type": "string",
+                                            "description": "Heading for the comparison table."
+                                        },
+                                        "features": {
+                                            "type": "array",
+                                            "description": "List of features being compared.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "label": {
+                                                        "type": "string",
+                                                        "description": "Feature name."
+                                                    },
+                                                    "a_value": {
+                                                        "type": "string",
+                                                        "description": f"Value for {term_a}."
+                                                    },
+                                                    "b_value": {
+                                                        "type": "string",
+                                                        "description": f"Value for {term_b}."
+                                                    }
+                                                },
+                                                "required": [
+                                                    "label",
+                                                    "a_value",
+                                                    "b_value"
+                                                ],
+                                                "additionalProperties": False
+                                            }
+                                        },
+                                        "ideal_for": {
+                                            "type": "object",
+                                            "description": "Information about who each term is ideal for.",
+                                            "properties": {
+                                                "a": {
+                                                    "type": "string",
+                                                    "description": f"Description of the ideal audience for {term_a}."
+                                                },
+                                                "b": {
+                                                    "type": "string",
+                                                    "description": f"Description of the ideal audience for {term_b}."
+                                                }
+                                            },
+                                            "required": [
+                                                "a",
+                                                "b"
+                                            ],
+                                            "additionalProperties": False
+                                        }
+                                    },
+                                    "required": [
+                                        "heading",
+                                        "features",
+                                        "ideal_for"
+                                    ],
+                                    "additionalProperties": False
+                                },
+                                "conclusion": {
+                                    "type": "object",
+                                    "description": "Conclusion section of the blog post.",
+                                    "properties": {
+                                        "heading": {
+                                            "type": "string",
+                                            "description": "Heading for the conclusion section."
+                                        },
+                                        "summary_paragraphs": {
+                                            "type": "array",
+                                            "description": "Final summary paragraphs.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "text": {
+                                                        "type": "string",
+                                                        "description": "Text of the conclusion paragraph."
+                                                    }
+                                                },
+                                                "required": [
+                                                    "text"
+                                                ],
+                                                "additionalProperties": False
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "heading",
+                                        "summary_paragraphs"
+                                    ],
+                                    "additionalProperties": False
+                                }
+                            },
+                            "required": [
+                                "title",
+                                "slug",
+                                "published_date",
+                                "read_time",
+                                "author",
+                                "media",
+                                "introduction_paragraphs",
+                                "jump_link_text",
+                                "background",
+                                "key_differences",
+                                "comparison_table",
+                                "conclusion"
+                            ],
+                            "additionalProperties": False
+                        }
                     }
-                ],
+                },
+                reasoning={},
+                tools=[],
                 temperature=0.7,
-                max_tokens=4096,
-                frequency_penalty=0.2,
-                presence_penalty=0.1,
-                response_format={"type": "json_object"}
+                max_output_tokens=4000,
+                top_p=1,
+                store=True
             )
             
             # Extract JSON content from the response
-            content = response.choices[0].message.content
+            content = response.output_text
             
             # Log the raw response for debugging purposes
             self._log_blog_activity(term_a, term_b, True, content)
@@ -401,6 +685,8 @@ Use the following research to inform your comparison:
     def _clean_json_content(self, content: str) -> str:
         """
         Clean and fix JSON content from OpenAI's response.
+        If OpenAI's JSON response is already properly structured, this function 
+        simply returns the content as is.
         
         Args:
             content: The JSON string to clean
@@ -408,25 +694,13 @@ Use the following research to inform your comparison:
         Returns:
             A cleaned JSON string
         """
-        # Remove any markdown code block indicators
-        content = re.sub(r'^```json\s*', '', content)
-        content = re.sub(r'\s*```$', '', content)
-        
-        # Fix common issues with quotation marks
-        content = content.replace("'", '"')
-        
-        # Fix unquoted keys
-        content = re.sub(r'(\s*?)(\w+)(\s*?):', r'\1"\2"\3:', content)
-        
-        # Fix trailing commas in arrays and objects
-        content = re.sub(r',\s*}', '}', content)
-        content = re.sub(r',\s*]', ']', content)
-        
+        # With the improved JSON schema definition, we usually don't need cleaning
+        # This simplified function is kept as a fallback mechanism only
         return content
     
     def _post_process_blog_json(self, blog_json: Dict[str, Any], term_a: str, term_b: str) -> Dict[str, Any]:
         """
-        Post-process the blog JSON data to fix any issues.
+        Post-process the blog JSON data to ensure consistent structure.
         
         Args:
             blog_json: The blog data to process
@@ -479,304 +753,47 @@ Use the following research to inform your comparison:
         # Ensure read_time is set
         if "read_time" not in ordered_blog:
             ordered_blog["read_time"] = "5 min read"
-            
+        
         # Copy remaining fields from the original blog_json
-        if "introduction_paragraphs" in blog_json:
-            ordered_blog["introduction_paragraphs"] = blog_json["introduction_paragraphs"]
-        if "jump_link_text" in blog_json:
-            ordered_blog["jump_link_text"] = blog_json["jump_link_text"]
-        if "background" in blog_json:
-            ordered_blog["background"] = blog_json["background"]
-        if "key_differences" in blog_json:
-            ordered_blog["key_differences"] = blog_json["key_differences"]
-        if "comparison_table" in blog_json:
-            ordered_blog["comparison_table"] = blog_json["comparison_table"]
-        if "conclusion" in blog_json:
-            ordered_blog["conclusion"] = blog_json["conclusion"]
+        for field in ["introduction_paragraphs", "jump_link_text", "background", 
+                     "key_differences", "comparison_table", "conclusion"]:
+            if field in blog_json:
+                ordered_blog[field] = blog_json[field]
         
-        # Process the ordered dictionary with the rest of the function
-        blog_json = ordered_blog
+        # Ensure we have default values for essential sections
+        if "jump_link_text" not in ordered_blog:
+            ordered_blog["jump_link_text"] = f"Jump to {term_a} vs {term_b} Comparison"
         
-        # Ensure introduction_paragraphs is a list of objects with 'text' key
-        if "introduction_paragraphs" in blog_json and isinstance(blog_json["introduction_paragraphs"], list):
-            for i, para in enumerate(blog_json["introduction_paragraphs"]):
-                if isinstance(para, str):
-                    blog_json["introduction_paragraphs"][i] = {"text": para}
+        # Ensure introduction has only one paragraph (combine if multiple)
+        if "introduction_paragraphs" in ordered_blog and isinstance(ordered_blog["introduction_paragraphs"], list):
+            if len(ordered_blog["introduction_paragraphs"]) > 1:
+                # Combine multiple paragraphs into one
+                combined_text = " ".join([p.get("text", "") for p in ordered_blog["introduction_paragraphs"] if isinstance(p, dict) and "text" in p])
+                ordered_blog["introduction_paragraphs"] = [{"text": combined_text}]
         
-        # Ensure jump_link_text is set
-        if "jump_link_text" not in blog_json or not blog_json["jump_link_text"]:
-            blog_json["jump_link_text"] = f"Jump to {term_a} vs {term_b} Comparison"
-            
-        # Convert background content to paragraphs list with text objects
-        if "background" in blog_json:
-            if "content" in blog_json["background"] and isinstance(blog_json["background"]["content"], str):
-                # Split content into paragraphs
-                content = blog_json["background"]["content"]
-                paragraphs = [p.strip() for p in content.split("\n\n") if p.strip()]
-                
-                # If no paragraphs were found, try splitting by other paragraph markers
-                if not paragraphs:
-                    paragraphs = [p.strip() for p in re.split(r'(?:\r?\n){2,}', content) if p.strip()]
-                
-                # If still no paragraphs, treat the whole content as one paragraph
-                if not paragraphs:
-                    paragraphs = [content.strip()]
-                
-                # Convert to paragraph objects
-                background_paragraphs = [{"text": p} for p in paragraphs]
-                
-                # Replace content with paragraphs array
-                blog_json["background"]["paragraphs"] = background_paragraphs
-                if "content" in blog_json["background"]:
-                    del blog_json["background"]["content"]
-            elif "paragraphs" not in blog_json["background"]:
-                # If neither content nor paragraphs are present
-                blog_json["background"]["paragraphs"] = [
-                    {"text": f"Detailed background information on {term_a}..."},
-                    {"text": f"Detailed background information on {term_b}..."}
-                ]
-        else:
-            # Create default background structure
-            blog_json["background"] = {
-                "heading": f"Understanding {term_a} and {term_b}",
-                "paragraphs": [
-                    {"text": f"Detailed background information on {term_a}..."},
-                    {"text": f"Detailed background information on {term_b}..."}
-                ]
-            }
-        
-        # Convert old background_a and background_b if present
-        if "background_a" in blog_json and "background_b" in blog_json:
-            background_paragraphs = []
-            
-            # Extract text from background_a
-            if isinstance(blog_json["background_a"], list):
-                for para in blog_json["background_a"]:
-                    if isinstance(para, dict) and "text" in para:
-                        background_paragraphs.append({"text": para["text"]})
-                    elif isinstance(para, str):
-                        background_paragraphs.append({"text": para})
-            
-            # Extract text from background_b
-            if isinstance(blog_json["background_b"], list):
-                for para in blog_json["background_b"]:
-                    if isinstance(para, dict) and "text" in para:
-                        background_paragraphs.append({"text": para["text"]})
-                    elif isinstance(para, str):
-                        background_paragraphs.append({"text": para})
-            
-            # Create new background format
-            blog_json["background"] = {
-                "heading": f"Understanding {term_a} and {term_b}",
-                "paragraphs": background_paragraphs
-            }
-            
-            # Remove old keys
-            if "background_a" in blog_json:
-                del blog_json["background_a"]
-            if "background_b" in blog_json:
-                del blog_json["background_b"]
-        
-        # Ensure key_differences is formatted correctly
-        if "key_differences" not in blog_json:
-            blog_json["key_differences"] = {
-                "heading": f"Key Differences Between {term_a} and {term_b}",
-                "items": []
-            }
-            
-        # Convert old key_differences format if present
-        if "key_differences" in blog_json and isinstance(blog_json["key_differences"], list):
-            old_key_differences = blog_json["key_differences"]
-            new_key_differences = {
-                "heading": f"Key Differences Between {term_a} and {term_b}",
-                "items": []
-            }
-            
-            for diff in old_key_differences:
-                if isinstance(diff, dict) and "title" in diff and "description" in diff:
-                    # Split the description to use half for each term
-                    description_text = ""
-                    if isinstance(diff["description"], list):
-                        for para in diff["description"]:
-                            if isinstance(para, dict) and "text" in para:
-                                description_text += para["text"] + " "
-                            elif isinstance(para, str):
-                                description_text += para + " "
-                    elif isinstance(diff["description"], str):
-                        description_text = diff["description"]
-                    
-                    # Basic split of content for demo purposes
-                    words = description_text.split()
-                    midpoint = len(words) // 2
-                    a_description = " ".join(words[:midpoint])
-                    b_description = " ".join(words[midpoint:])
-                    
-                    new_key_differences["items"].append({
-                        "feature_title": diff["title"],
-                        "a_description": a_description,
-                        "b_description": b_description
-                    })
-            
-            blog_json["key_differences"] = new_key_differences
-        
-        # Ensure comparison_table is formatted correctly
-        if "comparison_table" not in blog_json:
-            blog_json["comparison_table"] = {
-                "heading": f"{term_a} vs {term_b} Comparison",
-                "features": self._generate_default_features(term_a, term_b),
-                "ideal_for": {
-                    "a": f"{term_a} is ideal for long-term investors and those seeking store of value.",
-                    "b": f"{term_b} is ideal for developers and those interested in smart contracts."
-                }
-            }
-            
-        # Convert old comparison_table format if present
-        if "comparison_table" in blog_json and "rows" in blog_json["comparison_table"]:
-            old_table = blog_json["comparison_table"]
-            new_table = {
-                "heading": f"{term_a} vs {term_b} Comparison",
-                "features": [],
-                "ideal_for": {
-                    "a": f"{term_a} is ideal for long-term investors and those seeking store of value.",
-                    "b": f"{term_b} is ideal for developers and those interested in smart contracts."
-                }
-            }
-            
-            if "rows" in old_table and isinstance(old_table["rows"], list):
-                for row in old_table["rows"]:
-                    if isinstance(row, dict) and "category" in row:
-                        new_table["features"].append({
-                            "label": row.get("category", ""),
-                            "a_value": row.get(term_a, "") or f"{term_a} value",
-                            "b_value": row.get(term_b, "") or f"{term_b} value"
-                        })
-            
-            # Ensure we have at least 5 features
-            if len(new_table["features"]) < 5:
-                default_features = self._generate_default_features(term_a, term_b)
-                current_count = len(new_table["features"])
-                new_table["features"].extend(default_features[current_count:])
-                
-            blog_json["comparison_table"] = new_table
-        
-        # Ensure conclusion is formatted correctly
-        blog_json = self._validate_and_prepare_blog_json(blog_json, term_a, term_b)
-        
-        # Remove old term_a and term_b fields from bottom of structure
-        # as they've been moved to the terms object
-        if "term_a" in blog_json:
-            del blog_json["term_a"]
-        if "term_b" in blog_json:
-            del blog_json["term_b"]
-        
-        # Remove word_count and read_time_minutes if present (as they are now calculated separately)
-        if "word_count" in blog_json:
-            del blog_json["word_count"]
-        if "read_time_minutes" in blog_json:
-            del blog_json["read_time_minutes"]
-        
-        return blog_json
-    
-    def _validate_and_prepare_blog_json(self, blog_json: Dict[str, Any], term_a: str, term_b: str) -> Dict[str, Any]:
-        """
-        Validate and prepare the blog JSON structure, ensuring conclusion section is properly formatted.
-        
-        Args:
-            blog_json: The blog JSON to validate and prepare
-            term_a: The first asset term
-            term_b: The second asset term
-            
-        Returns:
-            The validated and prepared blog JSON
-        """
-        # Make a copy of the blog_json to avoid modifying the original
-        prepared_json = blog_json.copy()
-        
-        # Ensure conclusion exists and has required structure
-        if "conclusion" not in prepared_json or not prepared_json["conclusion"]:
-            prepared_json["conclusion"] = {
-                "heading": f"Conclusion: {term_a} vs {term_b}",
-                "summary_paragraphs": self._generate_default_conclusion_paragraphs(term_a, term_b)
-            }
-        else:
-            # Ensure heading exists
-            if "heading" not in prepared_json["conclusion"] or not prepared_json["conclusion"]["heading"]:
-                prepared_json["conclusion"]["heading"] = f"Conclusion: {term_a} vs {term_b}"
-            
-            # Fix the heading if it has HTML tags or extra quotes
-            if isinstance(prepared_json["conclusion"]["heading"], str):
-                heading = prepared_json["conclusion"]["heading"]
-                # Remove HTML tags
-                heading = re.sub(r'<[^>]+>', '', heading)
-                # Remove extra quotes
-                heading = heading.replace("'", "").replace('"', "")
-                prepared_json["conclusion"]["heading"] = heading
-            
-            # Ensure summary_paragraphs exists and has proper format
-            if "summary_paragraphs" in prepared_json["conclusion"]:
-                if isinstance(prepared_json["conclusion"]["summary_paragraphs"], list):
-                    corrected_paragraphs = []
-                    
-                    for para in prepared_json["conclusion"]["summary_paragraphs"]:
-                        # Handle case where paragraph is a dict with text key
-                        if isinstance(para, dict) and "text" in para:
-                            # Clean up any format issues in the text
-                            text = para["text"]
-                            text = text.replace("'", "").replace('"', "")
-                            text = re.sub(r'<[^>]+>', '', text)
-                            corrected_paragraphs.append({"text": text})
-                        # Handle case where paragraph is a dict with empty string as value and text as key
-                        elif isinstance(para, dict) and len(para) == 1 and "" in para:
-                            text = list(para.keys())[0]
-                            text = text.replace("'", "").replace('"', "")
-                            text = re.sub(r'<[^>]+>', '', text)
-                            corrected_paragraphs.append({"text": text})
-                        # Handle case where paragraph is a string
-                        elif isinstance(para, str):
-                            text = para.replace("'", "").replace('"', "")
-                            text = re.sub(r'<[^>]+>', '', text)
-                            corrected_paragraphs.append({"text": text})
-                        # Handle any other unexpected format by adding an empty paragraph
+        # Ensure conclusion has only two paragraphs
+        if "conclusion" in ordered_blog and "summary_paragraphs" in ordered_blog["conclusion"]:
+            if isinstance(ordered_blog["conclusion"]["summary_paragraphs"], list):
+                paragraphs = ordered_blog["conclusion"]["summary_paragraphs"]
+                if len(paragraphs) > 2:
+                    # Keep only the first two paragraphs
+                    ordered_blog["conclusion"]["summary_paragraphs"] = paragraphs[:2]
+                elif len(paragraphs) < 2:
+                    # Generate default paragraphs if needed
+                    defaults = self._generate_default_conclusion_paragraphs(term_a, term_b)
+                    # Ensure we have exactly 2 paragraphs
+                    while len(ordered_blog["conclusion"]["summary_paragraphs"]) < 2:
+                        # Add default paragraphs if needed
+                        if defaults:
+                            ordered_blog["conclusion"]["summary_paragraphs"].append(defaults.pop(0))
                         else:
-                            corrected_paragraphs.append({"text": f"Additional information about {term_a} and {term_b}."})
-                    
-                    # Make sure we have at least 3 paragraphs
-                    if len(corrected_paragraphs) < 3:
-                        default_paragraphs = self._generate_default_conclusion_paragraphs(term_a, term_b)
-                        # Combine the lists while ensuring at least 3 paragraphs
-                        while len(corrected_paragraphs) < 3 and len(default_paragraphs) > 0:
-                            corrected_paragraphs.append(default_paragraphs.pop(0))
-                    
-                    prepared_json["conclusion"]["summary_paragraphs"] = corrected_paragraphs
-                else:
-                    # If summary_paragraphs exists but is not a list, create a new default list
-                    prepared_json["conclusion"]["summary_paragraphs"] = self._generate_default_conclusion_paragraphs(term_a, term_b)
-            else:
-                # If summary_paragraphs doesn't exist, add it
-                prepared_json["conclusion"]["summary_paragraphs"] = self._generate_default_conclusion_paragraphs(term_a, term_b)
-                
-        # Convert old summary_paragraphs to conclusion format if present
-        if "summary_paragraphs" in prepared_json and isinstance(prepared_json["summary_paragraphs"], list):
-            conclusion_paragraphs = []
-            
-            for para in prepared_json["summary_paragraphs"]:
-                if isinstance(para, dict) and "text" in para:
-                    conclusion_paragraphs.append({"text": para["text"]})
-                elif isinstance(para, str):
-                    conclusion_paragraphs.append({"text": para})
-            
-            if "conclusion" not in prepared_json:
-                prepared_json["conclusion"] = {
-                    "heading": f"Conclusion: {term_a} vs {term_b}",
-                    "summary_paragraphs": conclusion_paragraphs
-                }
-            elif "summary_paragraphs" not in prepared_json["conclusion"]:
-                prepared_json["conclusion"]["summary_paragraphs"] = conclusion_paragraphs
-                
-            # Remove old summary_paragraphs
-            del prepared_json["summary_paragraphs"]
+                            # Create a generic one if we ran out of defaults
+                            ordered_blog["conclusion"]["summary_paragraphs"].append({
+                                "text": f"Choosing between {term_a} and {term_b} ultimately depends on individual investment goals and preferences."
+                            })
         
-        return prepared_json
+        # Return the processed blog JSON
+        return ordered_blog
     
     def _calculate_word_count(self, blog_post: Dict[str, Any]) -> int:
         """
@@ -814,14 +831,18 @@ Use the following research to inform your comparison:
         # Title
         if "title" in blog_post:
             all_text += blog_post["title"] + " "
+        
+        # Jump link text
+        if "jump_link_text" in blog_post:
+            all_text += blog_post["jump_link_text"] + " "
             
         # Introduction paragraphs
         if "introduction_paragraphs" in blog_post:
             all_text += self._extract_content_text(blog_post["introduction_paragraphs"])
             
         # Background section
-        if "background" in blog_post and "content" in blog_post["background"]:
-            all_text += blog_post["background"]["content"] + " "
+        if "background" in blog_post and "paragraphs" in blog_post["background"]:
+            all_text += self._extract_content_text(blog_post["background"]["paragraphs"])
             
         # Key differences
         if "key_differences" in blog_post and "items" in blog_post["key_differences"]:
@@ -886,7 +907,7 @@ Use the following research to inform your comparison:
             The estimated read time in minutes
         """
         # Average reading speed (words per minute)
-        wpm = 238
+        wpm = 200  # Changed from 238 to 200
         read_time = math.ceil(word_count / wpm)
         
         # Minimum read time is 1 minute
@@ -937,10 +958,15 @@ Use the following research to inform your comparison:
             if field not in blog_post:
                 logger.warning(f"Missing required field: {field}")
                 
-        # Check list lengths
+        # Check introduction paragraph
         if "introduction_paragraphs" in blog_post:
-            if len(blog_post["introduction_paragraphs"]) < 2:
-                logger.warning("Less than 2 introduction paragraphs")
+            if len(blog_post["introduction_paragraphs"]) != 1:
+                logger.warning("Introduction should have exactly 1 paragraph")
+                
+        # Check background paragraphs
+        if "background" in blog_post and "paragraphs" in blog_post["background"]:
+            if len(blog_post["background"]["paragraphs"]) < 4:
+                logger.warning("Less than 4 background paragraphs")
                 
         # Check key_differences items
         if "key_differences" in blog_post and "items" in blog_post["key_differences"]:
@@ -954,8 +980,8 @@ Use the following research to inform your comparison:
                 
         # Check conclusion paragraphs
         if "conclusion" in blog_post and "summary_paragraphs" in blog_post["conclusion"]:
-            if len(blog_post["conclusion"]["summary_paragraphs"]) < 3:
-                logger.warning("Less than 3 conclusion paragraphs")
+            if len(blog_post["conclusion"]["summary_paragraphs"]) != 2:
+                logger.warning("Conclusion should have exactly 2 paragraphs")
     
     def _log_blog_activity(self, term_a: str, term_b: str, success: bool, content: str) -> None:
         """
@@ -995,7 +1021,45 @@ Use the following research to inform your comparison:
             A list of paragraph objects with text keys
         """
         return [
-            {"text": f"In conclusion, both {term_a} and {term_b} offer unique value propositions in the cryptocurrency ecosystem."},
-            {"text": f"While {term_a} excels in specific use cases, {term_b} has its own strengths that appeal to different user needs and preferences."},
-            {"text": f"Investors and users should carefully consider their specific requirements and risk tolerance when choosing between {term_a} and {term_b}."}
+            {"text": f"In conclusion, both {term_a} and {term_b} offer unique value propositions in the cryptocurrency ecosystem. While {term_a} excels in specific use cases, {term_b} has its own strengths that appeal to different user needs and preferences."},
+            {"text": f"Investors and users should carefully consider their specific requirements and risk tolerance when choosing between {term_a} and {term_b}. The decision ultimately depends on individual goals, preferences, and the specific functionality needed."}
+        ]
+
+    def _generate_default_features(self, term_a: str, term_b: str) -> List[Dict[str, str]]:
+        """
+        Generate default features for the comparison table.
+        
+        Args:
+            term_a: The first asset term
+            term_b: The second asset term
+            
+        Returns:
+            A list of default features
+        """
+        return [
+            {
+                "label": "Core Functionality",
+                "a_value": f"{term_a} primary function",
+                "b_value": f"{term_b} primary function"
+            },
+            {
+                "label": "Technology",
+                "a_value": f"{term_a} technology",
+                "b_value": f"{term_b} technology"
+            },
+            {
+                "label": "Use Cases",
+                "a_value": f"{term_a} use cases",
+                "b_value": f"{term_b} use cases"
+            },
+            {
+                "label": "Security",
+                "a_value": f"{term_a} security features",
+                "b_value": f"{term_b} security features"
+            },
+            {
+                "label": "Market Position",
+                "a_value": f"{term_a} market stats",
+                "b_value": f"{term_b} market stats"
+            }
         ] 
