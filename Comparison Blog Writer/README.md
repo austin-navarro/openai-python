@@ -32,8 +32,9 @@ Comparison Blog Writer/
 │   └── blogs/                # Generated blog posts
 ├── logs/                     # Log files
 ├── venv/                     # Virtual environment (created by setup scripts)
+├── .env                      # Environment variables file (with OpenAI API key)
 ├── setup.sh                  # Unix setup script
-├── setup.bat                 # Windows setup script
+├── requirements.txt          # Python dependencies
 └── main.py                   # Script entry point
 ```
 
@@ -128,7 +129,7 @@ python main.py --batch --start-line 2 --end-line 5
 python main.py --batch --start-line 10 --end-line 20
 ```
 
-The batch mode reads pairs from the CSV file located at `data/crypto_comparison_pairs_cleaned.csv` and generates a blog for each pair within the specified line range (inclusive). Line numbers are 1-based, with line 1 being the header row, so lines 2-2451 contain the asset pairs.
+The batch mode reads pairs from the CSV file located at `data/crypto_comparison_pairs_cleaned.csv` and generates a blog for each pair within the specified line range (inclusive). Line numbers are 1-based, with line 1 being the header row, so lines 2-2551 contain the asset pairs (2550 total pairs).
 
 ## Output Format
 
@@ -136,47 +137,68 @@ The generated blog posts are saved as JSON files in the `output/blogs/` director
 
 ```json
 {
-  "title": "Bitcoin vs Ethereum: Key Differences and Detailed Comparison",
-  "slug": "bitcoin-vs-ethereum",
-  "published_date": "2024-04-15",
+  "title": "Bitcoin vs Ethereum: A Comprehensive Comparison",
+  "slug": "bitcoin-vs-ethereum-comparison",
+  "published_date": "2025-04-16T13:21:16Z",
+  "read_time": "3 min read",
+  "author": {
+    "name": "Moso Panda",
+    "role": "Crypto Connoisseur"
+  },
+  "terms": {
+    "term_a": "Bitcoin",
+    "term_b": "Ethereum"
+  },
+  "media": {
+    "term_a": "bitcoin-comparison-blog",
+    "term_b": "ethereum-comparison-blog"
+  },
   "introduction_paragraphs": [
     { "text": "Introduction paragraph 1..." },
     { "text": "Introduction paragraph 2..." }
   ],
-  "background_a": [
-    { "text": "Bitcoin background paragraph 1..." },
-    { "text": "Bitcoin background paragraph 2..." }
-  ],
-  "background_b": [
-    { "text": "Ethereum background paragraph 1..." },
-    { "text": "Ethereum background paragraph 2..." }
-  ],
-  "key_differences": [
-    {
-      "title": "Consensus Mechanism",
-      "description": [
-        { "text": "Description paragraph 1..." },
-        { "text": "Description paragraph 2..." }
-      ]
-    }
-  ],
-  "comparison_table": {
-    "headings": ["Category", "Bitcoin", "Ethereum"],
-    "rows": [
-      { "category": "Launch Date", "Bitcoin": "2009", "Ethereum": "2015" }
+  "jump_link_text": "Jump to Bitcoin vs Ethereum Comparison",
+  "background": {
+    "heading": "Understanding Bitcoin and Ethereum",
+    "paragraphs": [
+      { "text": "Background paragraph 1..." },
+      { "text": "Background paragraph 2..." }
     ]
   },
-  "summary_paragraphs": [
-    { "text": "Summary paragraph 1..." },
-    { "text": "Summary paragraph 2..." },
-    { "text": "Summary paragraph 3..." }
-  ],
-  "term_a": "Bitcoin",
-  "term_b": "Ethereum",
-  "word_count": 1475,
-  "read_time_minutes": 6,
-  "media_term_a": "bitcoin-comparison-blog",
-  "media_term_b": "ethereum-comparison-blog"
+  "key_differences": {
+    "heading": "Key Differences Between Bitcoin and Ethereum",
+    "items": [
+      {
+        "feature_title": "Purpose",
+        "a_description": "Description for Bitcoin...",
+        "b_description": "Description for Ethereum..."
+      },
+      // Additional key differences...
+    ]
+  },
+  "comparison_table": {
+    "heading": "Bitcoin vs Ethereum Comparison",
+    "features": [
+      {
+        "label": "Launch Year",
+        "a_value": "2009",
+        "b_value": "2015"
+      },
+      // Additional features...
+    ],
+    "ideal_for": {
+      "a": "Bitcoin is ideal for long-term investors...",
+      "b": "Ethereum is ideal for developers..."
+    }
+  },
+  "conclusion": {
+    "heading": "Conclusion: Bitcoin vs Ethereum",
+    "summary_paragraphs": [
+      { "text": "Summary paragraph 1..." },
+      { "text": "Summary paragraph 2..." },
+      { "text": "Summary paragraph 3..." }
+    ]
+  }
 }
 ```
 

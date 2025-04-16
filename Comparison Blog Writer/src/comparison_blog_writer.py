@@ -436,39 +436,67 @@ Use the following research to inform your comparison:
         Returns:
             The processed blog data
         """
-        # Ensure published_date is in the correct format (ISO 8601)
-        if "published_date" not in blog_json or not blog_json["published_date"]:
-            blog_json["published_date"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        # Create a new ordered dictionary to control the field order
+        ordered_blog = {}
+        
+        # Always use current date for published_date in ISO 8601 format
+        blog_json["published_date"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        
+        # Copy title and slug first if they exist
+        if "title" in blog_json:
+            ordered_blog["title"] = blog_json["title"]
+        if "slug" in blog_json:
+            ordered_blog["slug"] = blog_json["slug"]
+        if "published_date" in blog_json:
+            ordered_blog["published_date"] = blog_json["published_date"]
+        if "read_time" in blog_json:
+            ordered_blog["read_time"] = blog_json["read_time"]
+        
+        # Add author if it exists or create default
+        if "author" in blog_json:
+            ordered_blog["author"] = blog_json["author"]
         else:
-            # Try to convert existing date to ISO 8601 if it's not already
-            try:
-                # Check if date is simple YYYY-MM-DD format and convert to full ISO 8601
-                if re.match(r'^\d{4}-\d{2}-\d{2}$', blog_json["published_date"]):
-                    # Convert to full ISO 8601 by adding time component
-                    date_obj = datetime.strptime(blog_json["published_date"], "%Y-%m-%d")
-                    blog_json["published_date"] = date_obj.strftime("%Y-%m-%dT%H:%M:%SZ")
-            except ValueError:
-                # If parsing fails, set to current time in ISO 8601
-                blog_json["published_date"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            
-        # Ensure read_time is set
-        if "read_time" not in blog_json or not blog_json["read_time"]:
-            blog_json["read_time"] = "5 min read"
-            
-        # Ensure author is set
-        if "author" not in blog_json:
-            blog_json["author"] = {
+            ordered_blog["author"] = {
                 "name": "Moso Panda",
                 "role": "Crypto Connoisseur"
             }
-            
-        # Ensure media terms are set
-        if "media" not in blog_json:
-            blog_json["media"] = {
+        
+        # Add terms object between author and media
+        ordered_blog["terms"] = {
+            "term_a": term_a,
+            "term_b": term_b
+        }
+        
+        # Add media if it exists or create default
+        if "media" in blog_json:
+            ordered_blog["media"] = blog_json["media"]
+        else:
+            ordered_blog["media"] = {
                 "term_a": f"{term_a.lower()}-comparison-blog",
                 "term_b": f"{term_b.lower()}-comparison-blog"
             }
             
+        # Ensure read_time is set
+        if "read_time" not in ordered_blog:
+            ordered_blog["read_time"] = "5 min read"
+            
+        # Copy remaining fields from the original blog_json
+        if "introduction_paragraphs" in blog_json:
+            ordered_blog["introduction_paragraphs"] = blog_json["introduction_paragraphs"]
+        if "jump_link_text" in blog_json:
+            ordered_blog["jump_link_text"] = blog_json["jump_link_text"]
+        if "background" in blog_json:
+            ordered_blog["background"] = blog_json["background"]
+        if "key_differences" in blog_json:
+            ordered_blog["key_differences"] = blog_json["key_differences"]
+        if "comparison_table" in blog_json:
+            ordered_blog["comparison_table"] = blog_json["comparison_table"]
+        if "conclusion" in blog_json:
+            ordered_blog["conclusion"] = blog_json["conclusion"]
+        
+        # Process the ordered dictionary with the rest of the function
+        blog_json = ordered_blog
+        
         # Ensure introduction_paragraphs is a list of objects with 'text' key
         if "introduction_paragraphs" in blog_json and isinstance(blog_json["introduction_paragraphs"], list):
             for i, para in enumerate(blog_json["introduction_paragraphs"]):
@@ -479,39 +507,68 @@ Use the following research to inform your comparison:
         if "jump_link_text" not in blog_json or not blog_json["jump_link_text"]:
             blog_json["jump_link_text"] = f"Jump to {term_a} vs {term_b} Comparison"
             
-        # Ensure background is formatted correctly
-        if "background" not in blog_json:
+        # Convert background content to paragraphs list with text objects
+        if "background" in blog_json:
+            if "content" in blog_json["background"] and isinstance(blog_json["background"]["content"], str):
+                # Split content into paragraphs
+                content = blog_json["background"]["content"]
+                paragraphs = [p.strip() for p in content.split("\n\n") if p.strip()]
+                
+                # If no paragraphs were found, try splitting by other paragraph markers
+                if not paragraphs:
+                    paragraphs = [p.strip() for p in re.split(r'(?:\r?\n){2,}', content) if p.strip()]
+                
+                # If still no paragraphs, treat the whole content as one paragraph
+                if not paragraphs:
+                    paragraphs = [content.strip()]
+                
+                # Convert to paragraph objects
+                background_paragraphs = [{"text": p} for p in paragraphs]
+                
+                # Replace content with paragraphs array
+                blog_json["background"]["paragraphs"] = background_paragraphs
+                if "content" in blog_json["background"]:
+                    del blog_json["background"]["content"]
+            elif "paragraphs" not in blog_json["background"]:
+                # If neither content nor paragraphs are present
+                blog_json["background"]["paragraphs"] = [
+                    {"text": f"Detailed background information on {term_a}..."},
+                    {"text": f"Detailed background information on {term_b}..."}
+                ]
+        else:
+            # Create default background structure
             blog_json["background"] = {
                 "heading": f"Understanding {term_a} and {term_b}",
-                "content": "Detailed background information on both cryptocurrencies..."
+                "paragraphs": [
+                    {"text": f"Detailed background information on {term_a}..."},
+                    {"text": f"Detailed background information on {term_b}..."}
+                ]
             }
         
         # Convert old background_a and background_b if present
         if "background_a" in blog_json and "background_b" in blog_json:
-            combined_content = ""
+            background_paragraphs = []
+            
             # Extract text from background_a
             if isinstance(blog_json["background_a"], list):
                 for para in blog_json["background_a"]:
                     if isinstance(para, dict) and "text" in para:
-                        combined_content += para["text"] + "\n\n"
+                        background_paragraphs.append({"text": para["text"]})
                     elif isinstance(para, str):
-                        combined_content += para + "\n\n"
-            
-            # Add a separator
-            combined_content += f"### {term_b}\n\n"
+                        background_paragraphs.append({"text": para})
             
             # Extract text from background_b
             if isinstance(blog_json["background_b"], list):
                 for para in blog_json["background_b"]:
                     if isinstance(para, dict) and "text" in para:
-                        combined_content += para["text"] + "\n\n"
+                        background_paragraphs.append({"text": para["text"]})
                     elif isinstance(para, str):
-                        combined_content += para + "\n\n"
+                        background_paragraphs.append({"text": para})
             
             # Create new background format
             blog_json["background"] = {
                 "heading": f"Understanding {term_a} and {term_b}",
-                "content": combined_content.strip()
+                "paragraphs": background_paragraphs
             }
             
             # Remove old keys
@@ -545,6 +602,8 @@ Use the following research to inform your comparison:
                                 description_text += para["text"] + " "
                             elif isinstance(para, str):
                                 description_text += para + " "
+                    elif isinstance(diff["description"], str):
+                        description_text = diff["description"]
                     
                     # Basic split of content for demo purposes
                     words = description_text.split()
@@ -564,7 +623,7 @@ Use the following research to inform your comparison:
         if "comparison_table" not in blog_json:
             blog_json["comparison_table"] = {
                 "heading": f"{term_a} vs {term_b} Comparison",
-                "features": [],
+                "features": self._generate_default_features(term_a, term_b),
                 "ideal_for": {
                     "a": f"{term_a} is ideal for long-term investors and those seeking store of value.",
                     "b": f"{term_b} is ideal for developers and those interested in smart contracts."
@@ -588,41 +647,27 @@ Use the following research to inform your comparison:
                     if isinstance(row, dict) and "category" in row:
                         new_table["features"].append({
                             "label": row.get("category", ""),
-                            "a_value": row.get(term_a, ""),
-                            "b_value": row.get(term_b, "")
+                            "a_value": row.get(term_a, "") or f"{term_a} value",
+                            "b_value": row.get(term_b, "") or f"{term_b} value"
                         })
             
+            # Ensure we have at least 5 features
+            if len(new_table["features"]) < 5:
+                default_features = self._generate_default_features(term_a, term_b)
+                current_count = len(new_table["features"])
+                new_table["features"].extend(default_features[current_count:])
+                
             blog_json["comparison_table"] = new_table
         
         # Ensure conclusion is formatted correctly
-        if "conclusion" not in blog_json:
-            blog_json["conclusion"] = {
-                "heading": f"Conclusion: {term_a} vs {term_b}",
-                "summary_paragraphs": []
-            }
-            
-        # Convert old summary_paragraphs to conclusion format if present
-        if "summary_paragraphs" in blog_json and isinstance(blog_json["summary_paragraphs"], list):
-            conclusion_paragraphs = []
-            
-            for para in blog_json["summary_paragraphs"]:
-                if isinstance(para, dict) and "text" in para:
-                    conclusion_paragraphs.append({"text": para["text"]})
-                elif isinstance(para, str):
-                    conclusion_paragraphs.append({"text": para})
-            
-            blog_json["conclusion"] = {
-                "heading": f"Conclusion: {term_a} vs {term_b}",
-                "summary_paragraphs": conclusion_paragraphs
-            }
-            
-            # Remove old summary_paragraphs
-            if "summary_paragraphs" in blog_json:
-                del blog_json["summary_paragraphs"]
+        blog_json = self._validate_and_prepare_blog_json(blog_json, term_a, term_b)
         
-        # Ensure term_a and term_b are set in the final structure
-        blog_json["term_a"] = term_a
-        blog_json["term_b"] = term_b
+        # Remove old term_a and term_b fields from bottom of structure
+        # as they've been moved to the terms object
+        if "term_a" in blog_json:
+            del blog_json["term_a"]
+        if "term_b" in blog_json:
+            del blog_json["term_b"]
         
         # Remove word_count and read_time_minutes if present (as they are now calculated separately)
         if "word_count" in blog_json:
@@ -631,6 +676,107 @@ Use the following research to inform your comparison:
             del blog_json["read_time_minutes"]
         
         return blog_json
+    
+    def _validate_and_prepare_blog_json(self, blog_json: Dict[str, Any], term_a: str, term_b: str) -> Dict[str, Any]:
+        """
+        Validate and prepare the blog JSON structure, ensuring conclusion section is properly formatted.
+        
+        Args:
+            blog_json: The blog JSON to validate and prepare
+            term_a: The first asset term
+            term_b: The second asset term
+            
+        Returns:
+            The validated and prepared blog JSON
+        """
+        # Make a copy of the blog_json to avoid modifying the original
+        prepared_json = blog_json.copy()
+        
+        # Ensure conclusion exists and has required structure
+        if "conclusion" not in prepared_json or not prepared_json["conclusion"]:
+            prepared_json["conclusion"] = {
+                "heading": f"Conclusion: {term_a} vs {term_b}",
+                "summary_paragraphs": self._generate_default_conclusion_paragraphs(term_a, term_b)
+            }
+        else:
+            # Ensure heading exists
+            if "heading" not in prepared_json["conclusion"] or not prepared_json["conclusion"]["heading"]:
+                prepared_json["conclusion"]["heading"] = f"Conclusion: {term_a} vs {term_b}"
+            
+            # Fix the heading if it has HTML tags or extra quotes
+            if isinstance(prepared_json["conclusion"]["heading"], str):
+                heading = prepared_json["conclusion"]["heading"]
+                # Remove HTML tags
+                heading = re.sub(r'<[^>]+>', '', heading)
+                # Remove extra quotes
+                heading = heading.replace("'", "").replace('"', "")
+                prepared_json["conclusion"]["heading"] = heading
+            
+            # Ensure summary_paragraphs exists and has proper format
+            if "summary_paragraphs" in prepared_json["conclusion"]:
+                if isinstance(prepared_json["conclusion"]["summary_paragraphs"], list):
+                    corrected_paragraphs = []
+                    
+                    for para in prepared_json["conclusion"]["summary_paragraphs"]:
+                        # Handle case where paragraph is a dict with text key
+                        if isinstance(para, dict) and "text" in para:
+                            # Clean up any format issues in the text
+                            text = para["text"]
+                            text = text.replace("'", "").replace('"', "")
+                            text = re.sub(r'<[^>]+>', '', text)
+                            corrected_paragraphs.append({"text": text})
+                        # Handle case where paragraph is a dict with empty string as value and text as key
+                        elif isinstance(para, dict) and len(para) == 1 and "" in para:
+                            text = list(para.keys())[0]
+                            text = text.replace("'", "").replace('"', "")
+                            text = re.sub(r'<[^>]+>', '', text)
+                            corrected_paragraphs.append({"text": text})
+                        # Handle case where paragraph is a string
+                        elif isinstance(para, str):
+                            text = para.replace("'", "").replace('"', "")
+                            text = re.sub(r'<[^>]+>', '', text)
+                            corrected_paragraphs.append({"text": text})
+                        # Handle any other unexpected format by adding an empty paragraph
+                        else:
+                            corrected_paragraphs.append({"text": f"Additional information about {term_a} and {term_b}."})
+                    
+                    # Make sure we have at least 3 paragraphs
+                    if len(corrected_paragraphs) < 3:
+                        default_paragraphs = self._generate_default_conclusion_paragraphs(term_a, term_b)
+                        # Combine the lists while ensuring at least 3 paragraphs
+                        while len(corrected_paragraphs) < 3 and len(default_paragraphs) > 0:
+                            corrected_paragraphs.append(default_paragraphs.pop(0))
+                    
+                    prepared_json["conclusion"]["summary_paragraphs"] = corrected_paragraphs
+                else:
+                    # If summary_paragraphs exists but is not a list, create a new default list
+                    prepared_json["conclusion"]["summary_paragraphs"] = self._generate_default_conclusion_paragraphs(term_a, term_b)
+            else:
+                # If summary_paragraphs doesn't exist, add it
+                prepared_json["conclusion"]["summary_paragraphs"] = self._generate_default_conclusion_paragraphs(term_a, term_b)
+                
+        # Convert old summary_paragraphs to conclusion format if present
+        if "summary_paragraphs" in prepared_json and isinstance(prepared_json["summary_paragraphs"], list):
+            conclusion_paragraphs = []
+            
+            for para in prepared_json["summary_paragraphs"]:
+                if isinstance(para, dict) and "text" in para:
+                    conclusion_paragraphs.append({"text": para["text"]})
+                elif isinstance(para, str):
+                    conclusion_paragraphs.append({"text": para})
+            
+            if "conclusion" not in prepared_json:
+                prepared_json["conclusion"] = {
+                    "heading": f"Conclusion: {term_a} vs {term_b}",
+                    "summary_paragraphs": conclusion_paragraphs
+                }
+            elif "summary_paragraphs" not in prepared_json["conclusion"]:
+                prepared_json["conclusion"]["summary_paragraphs"] = conclusion_paragraphs
+                
+            # Remove old summary_paragraphs
+            del prepared_json["summary_paragraphs"]
+        
+        return prepared_json
     
     def _calculate_word_count(self, blog_post: Dict[str, Any]) -> int:
         """
@@ -835,4 +981,21 @@ Use the following research to inform your comparison:
         with open(log_file, 'w', encoding='utf-8') as f:
             json.dump(log_data, f, indent=2)
             
-        logger.info(f"Blog activity logged to {log_file}") 
+        logger.info(f"Blog activity logged to {log_file}")
+    
+    def _generate_default_conclusion_paragraphs(self, term_a: str, term_b: str) -> List[Dict[str, str]]:
+        """
+        Generate default conclusion paragraphs when none are provided.
+        
+        Args:
+            term_a: The first asset term
+            term_b: The second asset term
+            
+        Returns:
+            A list of paragraph objects with text keys
+        """
+        return [
+            {"text": f"In conclusion, both {term_a} and {term_b} offer unique value propositions in the cryptocurrency ecosystem."},
+            {"text": f"While {term_a} excels in specific use cases, {term_b} has its own strengths that appeal to different user needs and preferences."},
+            {"text": f"Investors and users should carefully consider their specific requirements and risk tolerance when choosing between {term_a} and {term_b}."}
+        ] 
