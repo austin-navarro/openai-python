@@ -1,0 +1,91 @@
+---
+description: whenever the user is asking to create a blog, create a random blog, or generate blogs in bulk or batches use this
+globs: 
+alwaysApply: false
+---
+# Comparison Blog Writer Usage Guide
+
+The Comparison Blog Writer is a Python tool that generates structured comparison blog posts between cryptocurrency assets using OpenAI's GPT models. Here's how to use all available features:
+
+## Key Features
+
+1. **Generate a single blog post** for two specific crypto assets
+2. **Generate a random blog post** from a pair in the CSV file
+3. **List available asset pairs** from the CSV file
+4. **Generate multiple blogs in batch mode** from a specified range of pairs
+5. **Structured JSON output** with consistent formatting, word count, and read time metrics
+
+## Command-Line Usage
+
+### 1. Generate a Blog with Specific Assets
+
+To generate a comparison blog for specific assets:
+
+```bash
+cd "Comparison Blog Writer"
+python main.py --term-a "Bitcoin" --term-b "Ethereum"
+```
+
+### 2. Generate a Random Blog Post
+
+To select a random asset pair from the CSV and generate a blog:
+
+```bash
+cd "Comparison Blog Writer"
+python main.py --random
+```
+
+### 3. List Available Asset Pairs
+
+To see what asset pairs are available in the CSV file:
+
+```bash
+# List the first 10 available pairs (default)
+python main.py --list-pairs
+
+# List more pairs (e.g., 20)
+python main.py --list-pairs --limit 20
+```
+
+### 4. Generate Multiple Blogs in Batch Mode
+
+To generate blogs for multiple asset pairs in sequence:
+
+```bash
+# Generate blogs for pairs from lines 2-5 in the CSV file
+python main.py --batch --start-line 2 --end-line 5
+
+# Generate blogs for a different range of pairs
+python main.py --batch --start-line 10 --end-line 20
+```
+
+The batch mode reads pairs from `data/crypto_comparison_pairs_cleaned.csv` and generates a blog for each pair within the specified line range (inclusive). Line numbers are 1-based, with line 1 being the header row.
+
+## Output Information
+
+After generating a blog post, the script outputs:
+- The blog title
+- Word count 
+- Estimated read time
+- Output file location (in `output/blogs/`)
+
+For batch processing, the script shows progress and summary information for each generated blog.
+
+## File Paths
+
+- **Input CSV**: `data/crypto_comparison_pairs_cleaned.csv`
+- **Research Data**: `research/assets/{asset_name}.json`
+- **Output Blogs**: `output/blogs/{slug}.json`
+- **Logs**: `logs/` directory
+
+## Requirements
+
+- Python 3.9+
+- OpenAI API key (set in `.env` file or environment variable)
+- Required packages: openai, python-dotenv (installed via setup scripts)
+
+Make sure to activate the virtual environment before running the script:
+```bash
+source venv/bin/activate  # Unix/macOS
+venv\Scripts\activate.bat  # Windows
+```

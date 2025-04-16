@@ -1,0 +1,126 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Here’s a detailed breakdown of how this Comparison Blog Post Generation Agent script works, step-by-step:
+
+⸻
+
+🔧 Setup and Initialization
+	•	Environment & API:
+	•	Loads environment variables using dotenv to fetch the OPENAI_API_KEY.
+	•	Falls back to known paths if .env isn’t found initially.
+	•	Initializes the OpenAI client (gpt-4o-2024-05-13 model).
+	•	Directories:
+	•	Sets output path for blog posts.
+	•	Sets up a log directory (.unified-execution-log/logs) for tracking runs.
+	•	Schema Imports:
+	•	Tries relative import of ComparisonBlogPost and ParagraphItem, falling back to absolute.
+
+⸻
+
+🧠 Main Functionality: Blog Generation
+
+1. process_blog_generation(term_a, term_b, research_context)
+	•	Top-level method to generate the full blog post.
+	•	Steps:
+	1.	Creates a slug for file naming.
+	2.	Calls generate_blog_post() to invoke OpenAI API.
+	3.	Runs _post_process_blog_json() to clean/fix structure.
+	4.	Calculates read time and word count.
+	5.	Saves JSON to output directory.
+
+⸻
+
+2. generate_blog_post(term_a, term_b, research_context)
+	•	Handles full blog generation using OpenAI’s function calling API.
+	•	Inputs a prompt + function schema, receives structured blog content.
+	•	Steps:
+	1.	Constructs prompt with _get_prompt().
+	2.	Defines a structured output schema.
+	3.	Sends chat.completions.create() to OpenAI.
+	4.	Extracts JSON from function_call.arguments.
+	5.	Cleans JSON with _clean_json_content().
+	6.	Validates schema structure.
+	7.	Returns the cleaned dictionary.
+
+⸻
+
+📝 Prompt & Schema Handling
+
+3. _get_prompt(term_a, term_b, research_context)
+	•	Constructs a highly detailed system prompt.
+	•	Includes:
+	•	Audience goals.
+	•	SEO instructions.
+	•	Required schema format (embedded as JSON).
+	•	Optional research context appended.
+
+⸻
+
+🧼 Post-Processing and Cleanup
+
+4. _post_process_blog_json(blog_json, term_a, term_b)
+	•	Fixes formatting or schema issues in the response.
+	•	Normalizes:
+	•	published_date
+	•	introduction_paragraphs & summary_paragraphs format
+	•	media keys to append -comparison-blog
+	•	Adds default conclusion if missing
+	•	Cleans punctuation, spacing, casing, and dangling JSON quirks
+
+⸻
+
+🧮 Utilities & Validation
+
+5. _calculate_word_count(blog_post)
+	•	Iterates through blog sections and totals all word counts.
+	•	Also logs section-wise breakdowns.
+
+6. _calculate_read_time(word_count)
+	•	Uses WPM (238) to estimate total read time (minimum 1 min).
+
+7. _validate_blog_post_schema(blog_post)
+	•	Non-blocking logging validator.
+	•	Checks:
+	•	Presence and type of required fields.
+	•	Word count per section.
+	•	Structure rules (e.g., 5 key_differences, 3 summary_paragraphs).
+
+⸻
+
+8. _clean_json_content(content)
+	•	Attempts to fix malformed or nearly-valid JSON using regex and heuristics.
+	•	Goes through multiple “cleanup attempts”:
+	•	Normalize whitespace.
+	•	Fix unquoted keys or values.
+	•	Patch common character problems (e.g., "", \n, ').
+	•	Aggressive JSON quoting if needed.
+
+⸻
+
+9. _log_blog_activity(term_a, term_b, success, error)
+	•	Writes a Markdown-style log file for each blog run.
+	•	Documents input, outcome, next steps.
+
+⸻
+
+🧰 Other Utility Functions
+	•	_extract_blog_text_content() and _extract_content_text():
+	•	Used for pulling raw text from the blog JSON for word count or display.
+	•	_create_slug(text):
+	•	Converts terms to URL-safe slugs.
+
+⸻
+
+✅ What It Does in Summary
+
+This script:
+	•	Dynamically builds a structured JSON prompt with specific crypto comparison instructions.
+	•	Uses GPT-4o’s function calling to get back clean JSON output.
+	•	Validates and logs everything.
+	•	Cleans and fixes malformed model outputs.
+	•	Saves the result into a usable .json file for publishing.
+
+Let me know if you want a visual diagram, simplified walkthrough for non-devs, or a stripped-down version of this agent.

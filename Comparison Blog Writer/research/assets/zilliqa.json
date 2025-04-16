@@ -1,0 +1,22 @@
+{
+  "asset_name": "Zilliqa",
+  "research_content": "### Source 1: The Zilliqa platform - https://www.zilliqa.com/our-platform\n\nZilliqa is the world's first sharded blockchain, launched in 2017 to address scalability issues in blockchain technology. Its unique sharding technique allows the network to scale linearly as it grows, making it ideal for businesses and decentralized applications (dApps) requiring high throughput. The network consists of 2,400 nodes distributed across four shards, with each shard comprising 600 nodes, ensuring decentralization. Zilliqa employs Scilla, a peer-reviewed, safe-by-design smart contract language, to enhance security by addressing vulnerabilities common in other contract languages. The platform's architecture maintains a balance between security, decentralization, and scalability, with low gas fees enabling micro-payments. Transactions on Zilliqa achieve finality in a single block, eliminating the need for multiple confirmations. ([zilliqa.com](https://www.zilliqa.com/our-platform?utm_source=openai))\n\n### Source 2: EVM and the road to Zilliqa 2.0 - Upgrading network efficiency - https://blog.zilliqa.com/evm-and-the-road-to-zilliqa-2-0-upgrading-network-efficiency/\n\nZilliqa is implementing Ethereum Virtual Machine (EVM) compatibility on its mainnet, scheduled for April 25, 2023. This update will add native support for Solidity applications, simplifying development on Zilliqa's low-fee, high-throughput network and enabling the use of popular wallets like MetaMask with native ZIL tokens. EVM compatibility is a step toward Zilliqa 2.0, a significant network upgrade aimed at improving reliability, efficiency, and enabling new use cases. Zilliqa 2.0 will retain existing features, including full EVM compatibility, while introducing faster finality and better scalability through an improved sharding system. The upgrade will also feature a new consensus mechanism, Fast-HotStuff, reducing finality time by adding extra metadata to each block. Additionally, Zilliqa 2.0 will support a programmer's model heavily based on EVM, with most blockchain functionalities implemented as smart contracts, allowing for easier modifications without altering the underlying code. The new sharding system will offer programmable decentralization, enabling the creation of shards with nominated validators and encrypted data storage for private shards. ([blog.zilliqa.com](https://blog.zilliqa.com/evm-and-the-road-to-zilliqa-2-0-upgrading-network-efficiency/?utm_source=openai))\n\n### Source 3: Zilliqa (ZIL) - https://www.binance.com/en/research/projects/zilliqa\n\nZilliqa is a public blockchain platform designed to scale financial transactions, utilizing sharding technology to increase transaction rates as the network expands. Experimental results demonstrate a throughput of over 2,800 transactions per second. The platform features a two-layer blockchain structure: the Directory Service (DS) blockchain stores node identities, while the Transaction (TX) blockchain records validated transactions. Zilliqa employs an improved version of Practical Byzantine Fault Tolerance (pBFT) for consensus, offering instant block finality and eliminating the need for multiple confirmations. The native asset, ZIL, serves as an incentive for Proof-of-Work mining, payment for gas fees in smart contract execution, and transaction fees. Zilliqa's smart contract language, Scilla, is designed for security, allowing formal verification to eliminate common vulnerabilities. The platform uses JSON-RPC protocol for broadcasting transactions, with various SDKs available to facilitate dApp development. ([binance.com](https://www.binance.com/en/research/projects/zilliqa?utm_source=openai)) ",
+  "citations": [
+    {
+      "url": "https://www.zilliqa.com/our-platform?utm_source=openai",
+      "title": "Zilliqa | The Zilliqa platform"
+    },
+    {
+      "url": "https://blog.zilliqa.com/evm-and-the-road-to-zilliqa-2-0-upgrading-network-efficiency/?utm_source=openai",
+      "title": "EVM and the road to Zilliqa 2.0 - Upgrading network efficiency"
+    },
+    {
+      "url": "https://www.binance.com/en/research/projects/zilliqa?utm_source=openai",
+      "title": "Zilliqa (ZIL)"
+    }
+  ],
+  "source_count": 3,
+  "success": true,
+  "timestamp": "2025-04-10T16:11:41.195501",
+  "duration_seconds": 9.99705195426941
+}

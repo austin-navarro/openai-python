@@ -1,0 +1,22 @@
+{
+  "asset_name": "Lido",
+  "research_content": "### Source 1: Lido Goes Modular With Vault-Based 'V3' Upgrade - https://www.coindesk.com/fil/tech/2025/02/10/lido-goes-modular-with-vault-based-v3-upgrade\n\nUnder the proposed 'V3' upgrade, Lido introduces modular staking \"vaults\" called stVaults, designed to accommodate institutional investors and complex investment strategies. These stVaults are customizable smart contracts that allow users to personalize their staking setups, select preferred node operators, and adjust fee structures. The upgrade aims to transform Lido into an \"open staking marketplace,\" enabling users to opt into staking configurations that align with their objectives and risk profiles. This modular approach is expected to enhance Lido's appeal to institutions and high-net-worth investors seeking tailored staking solutions. ([coindesk.com](https://www.coindesk.com/fil/tech/2025/02/10/lido-goes-modular-with-vault-based-v3-upgrade?utm_source=openai))\n\n### Source 2: Protocol Village: Lido Launches 'Simple DVT Module' With Distributed Validator Technology - https://www.coindesk.com/tech/2024/04/11/protocol-village\n\nLido has launched the Simple DVT Module, enabling solo stakers to participate in the Lido protocol by leveraging distributed validator technology (DVT) solutions from Obol and SSV Network. This initiative diversifies node operators by welcoming participation from solo and community stakers, with an anticipated influx of 250 new node operators, representing a 600% increase. The Simple DVT Module enhances the resilience of Lido's infrastructure by diversifying hardware, client implementations, and geographic distribution, fostering a more decentralized ecosystem. ([coindesk.com](https://www.coindesk.com/tech/2024/04/11/protocol-village?utm_source=openai))\n\n### Source 3: Lido adoption surges with 10,000 new stakers despite Ethereum\u2019s price struggles - https://www.bitcoininsider.org/article/222235/lido-adoption-surges-10000-new-stakers-despite-ethereums-price-struggles\n\nIn July, Lido experienced significant growth, with over 10,000 new stakers joining the platform. The total value locked (TVL) briefly exceeded $15 billion, maintaining Lido's position as the leading DeFi protocol with a 36% share of the aggregate TVL across all DeFi projects. Despite Ethereum's price decline of approximately 3% to $1,815 during the same period, Lido's adoption continued to surge. The protocol predicted that the total number of staked Ethereum via its platform would surpass eight million in August, a milestone that has been achieved, with the total value of assets locked on Lido reaching 8.08 million ETH, an all-time high. ([bitcoininsider.org](https://www.bitcoininsider.org/article/222235/lido-adoption-surges-10000-new-stakers-despite-ethereums-price-struggles?utm_source=openai)) ",
+  "citations": [
+    {
+      "url": "https://www.coindesk.com/fil/tech/2025/02/10/lido-goes-modular-with-vault-based-v3-upgrade?utm_source=openai",
+      "title": "Lido Goes Modular With Vault-Based 'V3' Upgrade"
+    },
+    {
+      "url": "https://www.coindesk.com/tech/2024/04/11/protocol-village?utm_source=openai",
+      "title": "Protocol Village: Lido Launches 'Simple DVT Module' With Distributed Validator Technology"
+    },
+    {
+      "url": "https://www.bitcoininsider.org/article/222235/lido-adoption-surges-10000-new-stakers-despite-ethereums-price-struggles?utm_source=openai",
+      "title": "Lido adoption surges with 10,000 new stakers despite Ethereum\u2019s price struggles | Bitcoin Insider"
+    }
+  ],
+  "source_count": 3,
+  "success": true,
+  "timestamp": "2025-04-10T16:03:28.749243",
+  "duration_seconds": 7.142204999923706
+}

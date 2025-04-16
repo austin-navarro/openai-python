@@ -1,0 +1,22 @@
+{
+  "asset_name": "Axie Infinity",
+  "research_content": "### Source 1: The Resilience and Success of Axie Infinity: A Blockchain Gaming Pioneer - https://gtmdevelopment.medium.com/the-resilience-and-success-of-axie-infinity-a-blockchain-gaming-pioneer-d6e9e68bdd29\n\nAxie Infinity operates on a decentralized blockchain, enhancing transparency and security by preventing censorship and fraud. Each Axie, land, or item in the game exists as a unique token on the blockchain, ensuring true ownership and rarity. Smart contracts power gameplay, from trading Axies to battles, ensuring fairness and transparency. Axie Infinity utilizes Non-Fungible Tokens (NFTs) to represent unique digital assets. NFTs imbue virtual goods with real-world value, facilitating \u201cplay-to-earn\u201d opportunities. Blockchain guarantees the legitimacy of these assets, enabling players to trade and verify them outside the game. ([gtmdevelopment.medium.com](https://gtmdevelopment.medium.com/the-resilience-and-success-of-axie-infinity-a-blockchain-gaming-pioneer-d6e9e68bdd29?utm_source=openai))\n\n### Source 2: Axie Infinity - https://en.wikipedia.org/wiki/Axie_Infinity\n\nAxie Infinity is built on the Ronin Network, an Ethereum-linked sidechain developed by Sky Mavis. The game's official cryptocurrency is \"Axie Infinity Shards/Token\" or AXS for short. The game's secondary token, SLP, crashed in February 2022 amid a wider NFT and cryptocurrency crash, losing over 99% of its peak value. In March 2022, hackers compromised the Ronin Network, stealing approximately US$620 million worth of cryptocurrency from the project. The hackers were linked to Lazarus Group, funded by North Korea. ([en.wikipedia.org](https://en.wikipedia.org/wiki/Axie_Infinity?utm_source=openai))\n\n### Source 3: [GameFi] Axie Infinity Overview & Analysis - https://medium.com/%40encodinglabs/gamefi-axie-infinity-overview-analysis-ea8823f9e1e\n\nAxie Infinity is built on Ethereum, but it has developed its own side chain called \u2018Ronin\u2019 to solve scalability issues such as slow transaction speeds and high fees. Simply put, a side chain is a method of handling more transactions separately on the side chain and storing only major transactions on the mainnet. In February 2021, the Ronin Sidechain was launched, and in April, existing assets on the Ethereum network were successfully migrated to the Ronin chain. Currently, most NFTs and tokens are traded on the Ronin chain, and players have been satisfied with the fast processing speeds and low fees. However, due to the nature of the Ronin side chain, it operates separately from the Ethereum mainnet with a different consensus and validating method. Ronin uses a Byzantine Fault Tolerant (BFT) algorithm with Proof of Authority (PoA) and currently operates nine verification nodes. This was where they were vulnerable, and the hack caused immense damage. They have since announced plans to increase the number of verifier nodes to 100 in the future and are expected to gradually improve security. ([medium.com](https://medium.com/%40encodinglabs/gamefi-axie-infinity-overview-analysis-ea8823f9e1e?utm_source=openai)) ",
+  "citations": [
+    {
+      "url": "https://gtmdevelopment.medium.com/the-resilience-and-success-of-axie-infinity-a-blockchain-gaming-pioneer-d6e9e68bdd29?utm_source=openai",
+      "title": "The Resilience and Success of Axie Infinity: A Blockchain Gaming Pioneer | by OQTACORE | Medium"
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Axie_Infinity?utm_source=openai",
+      "title": "Axie Infinity"
+    },
+    {
+      "url": "https://medium.com/%40encodinglabs/gamefi-axie-infinity-overview-analysis-ea8823f9e1e?utm_source=openai",
+      "title": "[GameFi] Axie Infinity Overview & Analysis | by Encoding Labs | Medium"
+    }
+  ],
+  "source_count": 3,
+  "success": true,
+  "timestamp": "2025-04-10T15:54:30.214253",
+  "duration_seconds": 6.711688756942749
+}

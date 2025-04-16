@@ -1,0 +1,122 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Here’s a clean and detailed document outlining your project. It covers everything from folder structure to model usage and logging — designed to be dead simple for testing and scalable once you’re ready to run all asset pairs.
+
+⸻
+
+🧠 Moso Agent Blog Generator – Technical Overview & Project Blueprint
+
+🗂 Project Summary
+
+We’re building a Python-based blog generator that will:
+	•	Use OpenAI GPT-4.0 mini to generate comparison blogs between two crypto assets.
+	•	Rely on a structured JSON schema to ensure consistent content formatting.
+	•	Pull data from:
+	•	A CSV file of asset pairs (data/asset_pairs.csv)
+	•	Individual research JSON files (data/research/{asset_name}.json)
+	•	Append the research data to the prompt to enrich the model’s output.
+	•	Log and store raw model responses for transparency and auditing.
+
+⸻
+
+📁 Folder Structure
+
+programmatic_blog_generator/
+├── .env                           # Stores the OpenAI API Key
+├── main.py                        # Entry point for running the script
+├── prompts/
+│   └── comparison_prompt.txt      # Prompt template with placeholders
+├── src/
+│   ├── agents/
+│   │   └── comparison_agent.py    # Core logic to handle prompt creation, research merging, API calls
+│   └── utils/
+│       ├── csv_loader.py          # Load and parse asset pair CSV
+│       ├── research_loader.py     # Load research JSON files
+│       └── logger.py              # Handles logging raw responses
+├── data/
+│   ├── asset_pairs.csv            # CSV file with asset pairings (column A = term_a, column B = term_b)
+│   └── research/
+│       ├── bitcoin.json
+│       ├── ethereum.json
+│       └── ...                    # More asset-specific research files
+├── logs/
+│   └── responses/
+│       └── bitcoin-vs-ethereum.json  # Saved model responses for reference
+└── output/
+    └── blogs/
+        └── bitcoin-vs-ethereum.json  # Final blog post output, in structured format
+
+
+
+⸻
+
+🔁 Flow of Execution
+	1.	Load CSV File
+	•	Read asset pairs from data/asset_pairs.csv.
+	2.	Pull Research Context
+	•	For each asset (term_a, term_b), pull corresponding JSON files from data/research/{term}.json.
+	3.	Format Prompt
+	•	Insert assets and their research into the base prompt template (prompts/comparison_prompt.txt).
+	4.	Call OpenAI API
+	•	Use GPT-4.0 mini with temperature, max_tokens, etc., defined in main.py.
+	5.	Log Raw Response
+	•	Save the full response JSON to logs/responses/{slug}.json.
+	6.	Save Final Blog Output
+	•	Extract the model’s content and save it to output/blogs/{slug}.json.
+
+⸻
+
+🔑 API & Configs
+
+Your .env should include:
+
+OPENAI_API_KEY=sk-xxxxx
+
+
+
+⸻
+
+🧠 Model Prompt Format
+
+The prompt uses your supplied template titled:
+
+📌 Expert Crypto Comparison Content Creator
+
+You’ll pass:
+	•	{term_a}
+	•	{term_b}
+	•	{research_context} (merged from both term_a.json and term_b.json)
+
+The output must follow the strict JSON schema you outlined (title, slug, intro, background, key differences, table, conclusion, etc.).
+
+⸻
+
+📝 Notes on Scalability
+
+Once the system produces high-quality content for a few pairs:
+	•	You can scale by looping over all 2,450 pairs from the CSV.
+	•	Use batching or rate limiting to avoid hitting API rate limits.
+	•	Consider adding retry logic for API errors or incomplete outputs.
+
+⸻
+
+✅ Quality Control
+
+We’ll enforce:
+	•	Strict adherence to schema and word count (1,300–1,500 words)
+	•	Consistent naming for slugs and output files
+	•	Logging of all raw completions for later review or audit
+	•	Post-processing validation to check for required sections, JSON completeness, and word count
+
+⸻
+
+Let me know when you want help generating the starter code for:
+	•	main.py
+	•	comparison_agent.py
+	•	csv_loader.py
+	•	and logger.py
+
+We can also add validation scripts if you want to double-check model outputs before publishing.
