@@ -381,7 +381,7 @@ Use the following research to inform your comparison:
             
             # Build the API call with plain dictionaries to avoid any serialization issues
             response = self.client.responses.create(
-                model="gpt-4o-mini-2024-07-18",
+                model="gpt-4.1-nano-2025-04-14",
                 input=prompt,
                 text={
                     "format": {
