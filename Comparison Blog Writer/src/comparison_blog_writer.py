@@ -206,7 +206,7 @@ class ComparisonBlogWriter:
         # Save the blog post
         output_file = self.output_path / f"{slug}.json"
         with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(blog_data, f, indent=2)
+            json.dump(blog_data, f, indent=2, ensure_ascii=False)
             
         logger.info(f"Blog post saved to {output_file}")
         
@@ -1005,7 +1005,7 @@ Use the following research to inform your comparison:
         }
         
         with open(log_file, 'w', encoding='utf-8') as f:
-            json.dump(log_data, f, indent=2)
+            json.dump(log_data, f, indent=2, ensure_ascii=False)
             
         logger.info(f"Blog activity logged to {log_file}")
     
